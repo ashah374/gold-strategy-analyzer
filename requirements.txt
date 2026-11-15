@@ -1,0 +1,3 @@
+matplotlib
+# optional backup data source:
+# yfinance
