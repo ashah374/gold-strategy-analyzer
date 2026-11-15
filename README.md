@@ -61,8 +61,18 @@ The strategy made 8 trades: 4 won and 4 lost. The best trade was +102.0% and the
 
 <img width="742" height="236" alt="reports" src="https://github.com/user-attachments/assets/a8f42e9d-4f94-4a27-814a-e820316dd934" />
 
-
 *The report printed in my terminal.*
+
+## Timeline
+
+November 2026:
+
+1. **Picked the idea:** test a famous trading rule on gold, since I worked on gold trading bots during my internship
+2. **Wrote the code** with help from an AI coding assistant
+3. **Set up Python on my Mac** with a virtual environment and installed matplotlib and yfinance
+4. **Ran it.** stooq.com gave a 404 error, so it switched to Yahoo Finance and got 2,985 days of gold prices
+5. **Looked at the results:** the golden cross made less than buy & hold
+6. **Uploaded the code, screenshots and this README** to GitHub
 
 ## How I built it
 
@@ -84,3 +94,4 @@ pip install matplotlib yfinance
 python3 analyzer.py
 python3 analyzer.py --sweep
 ```
+
