@@ -1,83 +1,86 @@
-# 📈 Gold Price Strategy Analyzer
+# Gold Price Strategy Analyzer
 
-A Python tool that downloads real daily gold prices (XAU/USD), **backtests** a moving-average crossover trading strategy on them, compares it with simply buying and holding gold, and charts the result. It can also test 20 strategy settings at once and rank them.
+A Python program that tests a well-known trading rule on real gold prices and checks whether it would have done better than just buying gold and holding it.
 
-> Educational project, not financial advice.
+The rule is the "golden cross": **buy** when the 50-day average price goes above the 200-day average, and **sell** when it goes back below.
 
-## 1. Overview
-During my internship I worked around automated trading systems, and I kept wondering: *do the simple rules traders talk about actually work?* One of the most famous is the **"golden cross"**: buy when the 50-day average price crosses above the 200-day average, and sell when it crosses back below. This project tests that rule honestly on real data.
+> For learning only, not financial advice.
 
-**Features**
-- ⬇️ Downloads daily prices from **stooq.com** (free, no API key), with **Yahoo Finance** as a backup, and saves them in `data/`
-- 🔁 Backtests any fast/slow moving-average pair, including a **0.1% fee per trade**
-- 📊 Reports **total return, yearly return (CAGR), max drawdown, Sharpe ratio, number of trades and win rate**, side by side with buy & hold
-- 🖼️ Draws a 3-panel chart: price with buy/sell markers, value of $10,000 over time, and drawdown
-- 🔬 `--sweep` tests 20 combinations and ranks them by Sharpe ratio
-- 🌍 Works with any symbol, e.g. `--symbol xagusd` (silver) or `--symbol aapl.us`
+## Why I made it
 
-![Backtest chart](images/chart.png)
-*Gold 2015–2026 with the 50/200-day crossover. Green ▲ = buy, red ▼ = sell.*
+During my internship at KG Infotech, I worked on gold trading bots, so I wanted to see for myself whether a simple, famous trading rule actually works on gold.
 
-## 2. How It Works
+## What it does
+
+- Downloads daily gold prices. It tries stooq.com first, and if that fails, it uses Yahoo Finance (`GC=F`, gold futures).
+- Starts with $10,000, follows the buy/sell rule, and charges a 0.1% fee on every trade
+- Compares the result with buying once and holding
+- Prints total return, yearly return, the worst drop (max drawdown), and the Sharpe ratio, which measures return compared with risk
+- Saves a chart of the prices with buy/sell points, the value of $10,000 over time, and the drops
+- `--sweep` tries 20 different average lengths and ranks them
+
+<img width="1006" height="775" alt="chart" src="https://github.com/user-attachments/assets/22d3f6c9-1285-4587-b47b-276e6d010094" />
+
+
+*Gold, 2015–2026. Green ▲ = buy, red ▼ = sell.*
+
+## How it works
+
 ```mermaid
 flowchart TD
-    A[stooq.com / Yahoo Finance] --> B[(data/xauusd.csv)]
-    B --> C[load_prices<br/>Date + Close, skip bad rows]
-    C --> D[moving_average<br/>fast and slow]
-    D --> E[backtest<br/>signal today, trade tomorrow]
-    C --> F[buy_and_hold]
-    E --> G[stats<br/>CAGR, drawdown, Sharpe]
-    F --> G
-    G --> H[Terminal report]
-    E --> I[matplotlib chart]
+    A[stooq.com or Yahoo Finance] --> B[Read dates and closing prices]
+    B --> C[50-day and 200-day averages]
+    C --> D[Backtest: signal today, trade tomorrow]
+    B --> E[Buy and hold]
+    D --> F[Return, drawdown, Sharpe]
+    E --> F
+    F --> G[Report in terminal]
+    D --> H[Chart with matplotlib]
 ```
 
-1. **Moving averages:** `moving_average()` keeps a running sum, so each day costs one add and one subtract instead of re-adding the whole window.
-2. **Signals:** a *buy* is when yesterday fast ≤ slow and today fast > slow. A *sell* is the opposite.
-3. **Backtest:** starts with $10,000. It is either fully in gold or fully in cash, and every trade pays a fee.
-4. **Metrics:**
-   - **CAGR:** the average yearly growth rate
-   - **Max drawdown:** the worst fall from a peak, i.e. how painful it was to hold
-   - **Sharpe ratio:** average daily return ÷ how much returns swing, scaled to a year. Higher means more return for the risk.
+- The program decides to buy or sell at today's closing price, but makes the trade at **tomorrow's** price. In real life you only know today's close after the market closes.
+- The moving averages use a running sum, so each new day only needs one add and one subtract.
 
-**Tools:** Python 3, matplotlib, urllib, csv, math, argparse, Git & GitHub, VS Code
+**Tools:** Python, matplotlib, yfinance, Terminal, GitHub
 
-![Terminal report](images/report.png)
-*The terminal report comparing the strategy with buy & hold.*
+## Results
 
-## 3. Results
-<!-- Fill these in from YOUR run of: python3 analyzer.py -->
-| Gold, 2015–today | Crossover 50/200 | Buy & hold |
+Gold from Jan 2, 2015 to Nov 13, 2026 (2,985 trading days), starting with $10,000:
+
+| | Golden cross (50/200) | Buy & hold |
 |---|---|---|
-| Final value of $10,000 | $_____ | $_____ |
-| Yearly return (CAGR) | ___% | ___% |
-| Worst drop (max drawdown) | ___% | ___% |
-| Sharpe ratio | ___ | ___ |
+| Final value | $23,081 | $32,735 |
+| Total return | 130.8% | 227.7% |
+| Yearly return | 7.3% | 10.5% |
+| Worst drop | -27.5% | -26.9% |
+| Sharpe ratio | 0.56 | 0.68 |
 
-**What I found:** _(1–2 sentences in your own words, for example: did the crossover beat buy & hold? Did it at least avoid the big drops? What did `--sweep` show?)_
+The strategy made 8 trades: 4 won and 4 lost. The best trade was +102.0% and the worst was -6.9%.
 
-## 4. Timeline
-| Phase | What I did |
-|---|---|
-| 1. Research | Learned how moving-average crossovers work and which metrics professionals use |
-| 2. Data | Wrote the downloader, cache and CSV loader |
-| 3. Backtest | Built the strategy loop, fees and buy & hold comparison |
-| 4. Metrics & charts | Added CAGR, drawdown and Sharpe, then the 3-panel chart |
-| 5. Sweep & docs | Added `--sweep`, tested other symbols, recorded the demo and wrote this README |
+**What this shows:** the golden cross made money, but less than just holding gold. It also didn't avoid the worst drop. Most of its profit came from one big trade.
 
-## 5. Challenges & Bugs Fixed
-- **Look-ahead bias.** My first version bought at the *same* closing price that created the signal, but you only know the close once the day is over. Now the signal is decided at today's close and the trade happens at **tomorrow's** close, which made the results more honest (and a bit worse).
-- **Ignoring trading costs** made the strategy look better than it is, especially for fast settings that trade a lot. I added a 0.1% fee to every buy and sell.
-- **Slow moving averages.** Recalculating a 200-day average from scratch every day repeats a lot of work. A running sum makes each day O(1).
-- **Overfitting.** The best row in `--sweep` is only the best on *past* data. The tool prints a warning, because picking the past winner doesn't mean it will win next.
-- **Unreliable downloads.** If one data source fails, the tool tries a second one, and you can always pass your own file with `--file`.
+<img width="742" height="236" alt="reports" src="https://github.com/user-attachments/assets/a8f42e9d-4f94-4a27-814a-e820316dd934" />
 
-## ▶️ Run It Yourself
+
+*The report printed in my terminal.*
+
+## How I built it
+
+I made this in November 2026 for my portfolio assignment, with help from an AI coding assistant. I ran it on my own Mac, got the results above, and uploaded it here.
+
+## Problems I ran into
+
+- **stooq.com returned `HTTP Error 404`** when I ran it. The program switched to Yahoo Finance on its own, and that worked.
+- **`pip3 install` was blocked** with an `externally-managed-environment` error, because my Python comes from Homebrew. I made a virtual environment and installed matplotlib and yfinance there.
+
+## How to run it
+
 ```bash
 git clone https://github.com/ashah374/gold-strategy-analyzer.git
 cd gold-strategy-analyzer
-pip3 install -r requirements.txt
-python3 analyzer.py                       # gold, 50/200-day, since 2015
-python3 analyzer.py --fast 20 --slow 100  # try other settings
-python3 analyzer.py --sweep               # rank 20 combinations
+python3 -m venv venv
+source venv/bin/activate
+pip install matplotlib yfinance
+python3 analyzer.py
+python3 analyzer.py --sweep
 ```
